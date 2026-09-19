@@ -1,0 +1,714 @@
+/* ==========================================================================
+   RACING GAME - CYBERPUNK 3D (Plain HTML, CSS, JavaScript)
+   Aesthetic, Futuristic, High-Performance Canvas 3D
+   ========================================================================== */
+
+:root {
+  --neon-cyan: #00f3ff;
+  --neon-pink: #ff007f;
+  --neon-purple: #9d00ff;
+  --neon-yellow: #ffe600;
+  --neon-green: #00ff66;
+  --neon-red: #ff2244;
+  --dark-bg: #06060c;
+  --dark-panel: rgba(10, 12, 24, 0.85);
+  --dark-panel-border: rgba(0, 243, 255, 0.35);
+  --text-main: #e0f7ff;
+  --font-cyber: 'Courier New', 'Consolas', monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--dark-bg);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, 'Consolas', monospace;
+  color: var(--text-main);
+}
+
+#game-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at center, #0f1026 0%, #05060b 100%);
+}
+
+/* 3D Canvas */
+#gameCanvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* CRT and Scanlines overlay */
+.crt-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%, 
+    rgba(0, 0, 0, 0.25) 50%
+  );
+  background-size: 100% 4px;
+  z-index: 5;
+}
+
+.vignette-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.85);
+  z-index: 6;
+}
+
+/* HUD Layer */
+#hud-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 18px 24px;
+  transition: opacity 0.3s ease;
+}
+
+.hud-hidden {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Top HUD Bar */
+.hud-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.hud-box {
+  background: var(--dark-panel);
+  border: 1px solid var(--dark-panel-border);
+  box-shadow: 0 0 15px rgba(0, 243, 255, 0.15);
+  padding: 8px 16px;
+  border-radius: 4px;
+  position: relative;
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+}
+
+.hud-box::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 10px;
+  height: 2px;
+  background: var(--neon-cyan);
+}
+
+.hud-label {
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(0, 243, 255, 0.7);
+  margin-bottom: 2px;
+  font-weight: 700;
+}
+
+.hud-value {
+  font-family: var(--font-cyber);
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: #ffffff;
+  text-shadow: 0 0 8px var(--neon-cyan);
+}
+
+.hud-center-top {
+  display: flex;
+  gap: 16px;
+}
+
+.hud-top-right {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.hud-btn-action {
+  pointer-events: auto;
+  background: rgba(10, 12, 24, 0.85);
+  border: 1px solid var(--dark-panel-border);
+  color: var(--neon-cyan);
+  padding: 8px 14px;
+  cursor: pointer;
+  font-family: var(--font-cyber);
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border-radius: 2px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hud-btn-action:hover {
+  background: rgba(0, 243, 255, 0.2);
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 12px rgba(0, 243, 255, 0.4);
+}
+
+/* Center Alerts */
+#hud-alerts {
+  position: absolute;
+  top: 30%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+}
+
+.hud-banner-msg {
+  font-family: var(--font-cyber);
+  font-size: 38px;
+  font-weight: 900;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow: 0 0 20px var(--neon-pink), 0 0 40px var(--neon-cyan);
+  animation: pulseGlitch 0.4s ease-in-out infinite alternate;
+}
+
+.hud-sub-msg {
+  font-size: 14px;
+  letter-spacing: 3px;
+  color: var(--neon-cyan);
+  text-transform: uppercase;
+  margin-top: 6px;
+}
+
+@keyframes pulseGlitch {
+  0% { transform: scale(1); opacity: 0.9; }
+  100% { transform: scale(1.04); opacity: 1; text-shadow: 0 0 25px var(--neon-cyan), 0 0 45px var(--neon-pink); }
+}
+
+/* Bottom HUD Bar */
+.hud-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  width: 100%;
+}
+
+/* Speedometer */
+.hud-speedo-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.hud-speedo {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.hud-speed-num {
+  font-family: var(--font-cyber);
+  font-size: 54px;
+  font-weight: 900;
+  line-height: 1;
+  color: #ffffff;
+  text-shadow: 0 0 16px var(--neon-cyan);
+}
+
+.hud-speed-unit {
+  font-size: 14px;
+  letter-spacing: 2px;
+  color: var(--neon-cyan);
+  font-weight: 700;
+}
+
+.hud-tachometer-bar {
+  width: 220px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(0, 243, 255, 0.4);
+  position: relative;
+  overflow: hidden;
+  transform: skewX(-20deg);
+}
+
+.hud-tacho-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--neon-cyan), var(--neon-yellow), var(--neon-pink));
+  box-shadow: 0 0 10px var(--neon-cyan);
+  transition: width 0.05s linear;
+}
+
+/* Nitro Boost Gauge */
+.hud-nitro-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.hud-nitro-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--neon-pink);
+}
+
+.hud-nitro-bar {
+  width: 200px;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 0, 127, 0.5);
+  position: relative;
+  overflow: hidden;
+  transform: skewX(-20deg);
+}
+
+.hud-nitro-fill {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #800040, var(--neon-pink), #ffffff);
+  box-shadow: 0 0 12px var(--neon-pink);
+  transition: width 0.1s ease;
+}
+
+.nitro-active-glow {
+  box-shadow: 0 0 25px var(--neon-pink) !important;
+  animation: nitroThrob 0.2s infinite alternate;
+}
+
+@keyframes nitroThrob {
+  0% { filter: brightness(1); }
+  100% { filter: brightness(1.6); }
+}
+
+/* Gear & Shield indicator */
+.hud-gear-box {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.hud-badge {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 2px;
+  border: 1px solid var(--neon-cyan);
+  background: rgba(0, 243, 255, 0.1);
+  color: var(--neon-cyan);
+  font-family: var(--font-cyber);
+  letter-spacing: 1px;
+}
+
+.hud-badge.shield-on {
+  border-color: var(--neon-green);
+  color: var(--neon-green);
+  background: rgba(0, 255, 102, 0.15);
+  box-shadow: 0 0 10px rgba(0, 255, 102, 0.5);
+}
+
+/* Minimap / Sector Radar */
+.hud-radar-box {
+  position: relative;
+  width: 140px;
+  height: 14px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(0, 243, 255, 0.4);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.hud-radar-fill {
+  height: 100%;
+  width: 0%;
+  background: rgba(0, 243, 255, 0.25);
+  border-right: 2px solid var(--neon-cyan);
+}
+
+.hud-radar-player-dot {
+  position: absolute;
+  top: 2px;
+  left: 0%;
+  width: 10px;
+  height: 10px;
+  background: var(--neon-yellow);
+  border-radius: 50%;
+  transform: translateX(-50%);
+  box-shadow: 0 0 8px var(--neon-yellow);
+}
+
+/* ==========================================================================
+   MENUS & OVERLAYS (Cyberpunk Glassmorphism UI)
+   ========================================================================== */
+
+.modal-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(5, 6, 12, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  padding: 20px;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.modal-screen.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.cyber-card {
+  background: rgba(10, 13, 26, 0.95);
+  border: 1px solid rgba(0, 243, 255, 0.4);
+  box-shadow: 0 0 40px rgba(0, 243, 255, 0.2), inset 0 0 20px rgba(0, 0, 0, 0.8);
+  border-radius: 4px;
+  padding: 32px 40px;
+  max-width: 650px;
+  width: 92%;
+  text-align: center;
+  position: relative;
+  clip-path: polygon(0 0, calc(100% - 24px) 0, 100% 24px, 100% 100%, 24px 100%, 0 calc(100% - 24px));
+}
+
+.cyber-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 40px;
+  height: 3px;
+  background: var(--neon-pink);
+}
+
+.cyber-title {
+  font-family: var(--font-cyber);
+  font-size: 42px;
+  font-weight: 900;
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow: 0 0 20px var(--neon-cyan), 0 0 35px var(--neon-pink);
+  margin-bottom: 8px;
+}
+
+.cyber-subtitle {
+  font-size: 13px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--neon-cyan);
+  margin-bottom: 28px;
+  opacity: 0.9;
+}
+
+.menu-options-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto 24px auto;
+}
+
+.cyber-btn {
+  background: rgba(12, 17, 34, 0.8);
+  border: 1px solid rgba(0, 243, 255, 0.5);
+  color: #ffffff;
+  font-family: var(--font-cyber);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 14px 28px;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  position: relative;
+  overflow: hidden;
+}
+
+.cyber-btn:hover {
+  background: var(--neon-cyan);
+  color: #000;
+  border-color: #ffffff;
+  box-shadow: 0 0 25px rgba(0, 243, 255, 0.6);
+  transform: translateY(-2px);
+}
+
+.cyber-btn.btn-pink:hover {
+  background: var(--neon-pink);
+  border-color: #ffffff;
+  box-shadow: 0 0 25px rgba(255, 0, 127, 0.6);
+}
+
+.cyber-btn:active {
+  transform: translateY(1px);
+}
+
+.cyber-key-hints {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 20px;
+  font-size: 12px;
+  color: rgba(224, 247, 255, 0.6);
+}
+
+.key-badge {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(0, 243, 255, 0.3);
+  padding: 2px 7px;
+  border-radius: 3px;
+  color: var(--neon-cyan);
+  font-family: var(--font-cyber);
+  font-weight: bold;
+}
+
+/* Garage / Vehicle Selection */
+.vehicle-selector-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.vehicle-card {
+  background: rgba(15, 20, 40, 0.7);
+  border: 1px solid rgba(0, 243, 255, 0.2);
+  border-radius: 4px;
+  padding: 14px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.vehicle-card:hover, .vehicle-card.active {
+  border-color: var(--neon-cyan);
+  background: rgba(0, 243, 255, 0.15);
+  box-shadow: 0 0 20px rgba(0, 243, 255, 0.35);
+}
+
+.vehicle-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vehicle-name {
+  font-family: var(--font-cyber);
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 1px;
+}
+
+.vehicle-stats {
+  width: 100%;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stat-bar-bg {
+  width: 50px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.stat-bar-fill {
+  height: 100%;
+  background: var(--neon-cyan);
+}
+
+/* Color Picker */
+.color-picker-row {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.color-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.color-dot.active {
+  border-color: #ffffff;
+  transform: scale(1.2);
+  box-shadow: 0 0 15px currentColor;
+}
+
+/* High Score Table */
+.stats-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+.stats-summary-item {
+  background: rgba(15, 20, 40, 0.6);
+  border: 1px solid rgba(0, 243, 255, 0.2);
+  padding: 10px 14px;
+  border-radius: 3px;
+}
+
+/* Mobile Touch Controls */
+#touch-controls {
+  position: absolute;
+  bottom: 16px;
+  left: 0;
+  width: 100%;
+  display: none;
+  justify-content: space-between;
+  padding: 0 24px;
+  pointer-events: none;
+  z-index: 15;
+}
+
+@media (pointer: coarse), (max-width: 800px) {
+  #touch-controls {
+    display: flex;
+  }
+}
+
+.touch-cluster {
+  display: flex;
+  gap: 14px;
+  pointer-events: auto;
+}
+
+.touch-btn {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(10, 15, 30, 0.7);
+  border: 2px solid var(--neon-cyan);
+  color: var(--neon-cyan);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-cyber);
+  font-size: 20px;
+  font-weight: 900;
+  box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
+  touch-action: manipulation;
+}
+
+.touch-btn:active {
+  background: var(--neon-cyan);
+  color: #000;
+  box-shadow: 0 0 25px var(--neon-cyan);
+}
+
+.touch-btn.nitro-touch {
+  border-color: var(--neon-pink);
+  color: var(--neon-pink);
+  box-shadow: 0 0 15px rgba(255, 0, 127, 0.3);
+}
+
+.touch-btn.nitro-touch:active {
+  background: var(--neon-pink);
+  color: #fff;
+  box-shadow: 0 0 25px var(--neon-pink);
+}
+
+/* Responsive Scaling */
+@media (max-width: 680px) {
+  .cyber-title {
+    font-size: 28px;
+    letter-spacing: 3px;
+  }
+  .hud-speed-num {
+    font-size: 38px;
+  }
+  .hud-tachometer-bar {
+    width: 140px;
+  }
+  .hud-nitro-bar {
+    width: 130px;
+  }
+  .vehicle-selector-grid {
+    grid-template-columns: 1fr;
+  }
+  .hud-top {
+    gap: 8px;
+  }
+  .hud-box {
+    padding: 6px 10px;
+  }
+  .hud-value {
+    font-size: 16px;
+  }
+}

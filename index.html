@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Racing Game</title>
+    <meta name="description" content="A futuristic cyberpunk 3D racing game built with plain HTML, CSS, and JavaScript featuring neon synthwave visuals, high-speed hovercraft physics, procedural synth audio, and dynamic courses." />
+    <meta property="og:title" content="Racing Game" />
+    <meta property="og:description" content="A futuristic cyberpunk 3D racing game built with plain HTML, CSS, and JavaScript featuring neon synthwave visuals, high-speed hovercraft physics, procedural synth audio, and dynamic courses." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div id="game-container">
+      <!-- 3D Canvas -->
+      <canvas id="gameCanvas"></canvas>
+
+      <!-- Retro CRT Scanline & Vignette Effect Overlays -->
+      <div id="crt-overlay" class="crt-overlay"></div>
+      <div id="vignette-overlay" class="vignette-overlay"></div>
+
+      <!-- HUD Layer -->
+      <div id="hud-layer" class="hud-hidden">
+        <!-- Top Bar -->
+        <div id="hud-top-bar" class="hud-top">
+          <div id="hud-score-box" class="hud-box">
+            <div class="hud-label">DATA CREDITS / PTS</div>
+            <div id="hud-score" class="hud-value">0</div>
+          </div>
+
+          <div id="hud-center-top-box" class="hud-center-top">
+            <div id="hud-time-box" class="hud-box">
+              <div class="hud-label">SECTOR CHRONO</div>
+              <div id="hud-time" class="hud-value">0.0s</div>
+            </div>
+            <div id="hud-rank-box" class="hud-box">
+              <div class="hud-label">POSITION / ZONE</div>
+              <div id="hud-rank" class="hud-value">ZONE 01</div>
+            </div>
+          </div>
+
+          <div id="hud-actions-box" class="hud-top-right">
+            <button id="btn-audio-toggle" class="hud-btn-action" type="button" title="Toggle Synth Audio (M)">
+              <span>AUDIO: ON</span>
+            </button>
+            <button id="btn-pause" class="hud-btn-action" type="button" title="Pause Game (P/Esc)">
+              <span>PAUSE</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Center Notification Banners -->
+        <div id="hud-alerts">
+          <div id="banner-msg" class="hud-banner-msg">READY</div>
+          <div id="sub-msg" class="hud-sub-msg">SYSTEMS ONLINE</div>
+        </div>
+
+        <!-- Bottom Bar -->
+        <div id="hud-bottom-bar" class="hud-bottom">
+          <!-- Speedometer & Tachometer -->
+          <div id="hud-speed-gauge" class="hud-speedo-container">
+            <div class="hud-speedo">
+              <span id="hud-speed" class="hud-speed-num">0</span>
+              <span class="hud-speed-unit">KM/H</span>
+            </div>
+            <div class="hud-tachometer-bar">
+              <div id="hud-tacho-fill" class="hud-tacho-fill"></div>
+            </div>
+            <div class="hud-gear-box">
+              <span id="hud-shield-badge" class="hud-badge shield-on">SHIELD: 100%</span>
+              <span id="hud-cam-badge" class="hud-badge">CAM [C]</span>
+            </div>
+          </div>
+
+          <!-- Radar Mini-Track -->
+          <div id="hud-radar-container" class="hud-box" style="padding: 6px 12px;">
+            <div class="hud-label" style="text-align: center;">CIRCUIT MATRIX</div>
+            <div class="hud-radar-box">
+              <div id="hud-radar-fill" class="hud-radar-fill"></div>
+              <div id="hud-radar-player-dot" class="hud-radar-player-dot"></div>
+            </div>
+          </div>
+
+          <!-- Nitro Boost Gauge -->
+          <div id="hud-nitro-gauge" class="hud-nitro-container">
+            <div class="hud-nitro-label">
+              <span>NITRO OVERDRIVE</span>
+              <span style="font-size: 10px; color: #fff;">[SPACE]</span>
+            </div>
+            <div class="hud-nitro-bar">
+              <div id="hud-nitro-fill" class="hud-nitro-fill"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Menu Modal -->
+      <div id="modal-main-menu" class="modal-screen">
+        <div id="card-main-menu" class="cyber-card">
+          <h1 id="title-game" class="cyber-title">RACING GAME</h1>
+          <p id="desc-game" class="cyber-subtitle">NEO-TOKYO 2099 // HIGH-VELOCITY 3D CYBER-RACING</p>
+
+          <div id="menu-actions" class="menu-options-grid">
+            <button id="btn-play-endless" class="cyber-btn" type="button">
+              <span>CYBER HIGHWAY (ENDLESS)</span>
+            </button>
+            <button id="btn-play-timetrial" class="cyber-btn btn-pink" type="button">
+              <span>SECTOR TIME ATTACK</span>
+            </button>
+            <button id="btn-play-grandprix" class="cyber-btn" type="button">
+              <span>NEON GRAND PRIX (10 RACERS)</span>
+            </button>
+            <button id="btn-garage" class="cyber-btn" type="button" style="border-color: var(--neon-yellow); color: var(--neon-yellow);">
+              <span>CYBER CRAFT GARAGE</span>
+            </button>
+          </div>
+
+          <div id="main-key-hints" class="cyber-key-hints">
+            <div><span class="key-badge">W</span> / <span class="key-badge">UP</span> THROTTLE</div>
+            <div><span class="key-badge">S</span> / <span class="key-badge">DOWN</span> BRAKE</div>
+            <div><span class="key-badge">A / D</span> STEER</div>
+            <div><span class="key-badge">SPACE</span> NITRO</div>
+            <div><span class="key-badge">C</span> CAM</div>
+            <div><span class="key-badge">M</span> AUDIO</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Garage / Vehicle Selector Modal -->
+      <div id="modal-garage" class="modal-screen hidden">
+        <div id="card-garage" class="cyber-card">
+          <h2 id="title-garage" class="cyber-title" style="font-size: 32px;">CRAFT HANGAR</h2>
+          <p class="cyber-subtitle">SELECT YOUR COMBAT HOVERCRAFT</p>
+
+          <div id="vehicle-grid" class="vehicle-selector-grid">
+            <div class="vehicle-card active" data-vehicle="phantom">
+              <div class="vehicle-name">APEX-01 PHANTOM</div>
+              <div class="vehicle-stats">
+                <div class="stat-row"><span>SPEED: 380 KM/H</span><div class="stat-bar-bg"><div class="stat-bar-fill" style="width: 80%;"></div></div></div>
+                <div class="stat-row"><span>ACCEL: HIGH</span><div class="stat-bar-bg"><div class="stat-bar-fill" style="width: 75%;"></div></div></div>
+                <div class="stat-row"><span>HANDLING: AGILE</span><div class="stat-bar-bg"><div class="stat-bar-fill" style="width: 85%;"></div></div></div>
+              </div>
+            </div>
+
+            <div class="vehicle-card" data-vehicle="hyperion">
+              <div class="vehicle-name">NEXUS HYPER-ION</div>
+              <div class="vehicle-stats">
+                <div class="stat-row"><span>SPEED: 440 KM/H</span><div class="stat-bar-bg"><div class="stat-bar-fill" style="width: 100%;"></div></div></div>
+                <div class="stat-row"><span>ACCEL: MAXIMUM</span><div class="stat-bar-bg"><div class="stat-bar-fill" style="width: 95%;"></div></div></div>
+                <div class="stat-row"><span>HANDLING: SHARP</span><div class="stat-bar-bg"><div class="stat-bar-fill" style="width: 65%;"></div></div></div>
+              </div>
+            </div>
+
+            <div class="vehicle-card" data-vehicle="valkyrie">
+              <div class="vehicle-name">GHOST VALKYRIE</div>
+              <div class="vehicle-stats">
+                <div class="stat-row"><span>SPEED: 350 KM/H</span><div class="stat-bar-bg"><div class="stat-bar-fill" style="width: 70%;"></div></div></div>
+                <div class="stat-row"><span>ACCEL: BALANCED</span><div class="stat-bar-bg"><div class="stat-bar-fill" style="width: 70%;"></div></div></div>
+                <div class="stat-row"><span>SHIELD: TITANIUM</span><div class="stat-bar-bg"><div class="stat-bar-fill" style="width: 100%; background: var(--neon-green);"></div></div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="hud-label" style="margin-bottom: 10px;">NEON UNDERGLOW & CHASSIS EMISSION</div>
+          <div id="color-dots" class="color-picker-row">
+            <div class="color-dot active" data-color="cyan" style="background: #00f3ff;"></div>
+            <div class="color-dot" data-color="magenta" style="background: #ff007f;"></div>
+            <div class="color-dot" data-color="lime" style="background: #00ff66;"></div>
+            <div class="color-dot" data-color="gold" style="background: #ffe600;"></div>
+            <div class="color-dot" data-color="purple" style="background: #b700ff;"></div>
+          </div>
+
+          <button id="btn-back-garage" class="cyber-btn" type="button" style="margin: 0 auto;">
+            <span>CONFIRM & RETURN</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Pause Modal -->
+      <div id="modal-pause" class="modal-screen hidden">
+        <div id="card-pause" class="cyber-card">
+          <h2 class="cyber-title" style="font-size: 36px;">SYSTEM PAUSED</h2>
+          <p class="cyber-subtitle">ENGINES IN STANDBY</p>
+
+          <div class="menu-options-grid">
+            <button id="btn-resume" class="cyber-btn" type="button">
+              <span>RESUME FLIGHT</span>
+            </button>
+            <button id="btn-restart" class="cyber-btn" type="button">
+              <span>RESTART RACE</span>
+            </button>
+            <button id="btn-quit" class="cyber-btn btn-pink" type="button">
+              <span>ABORT TO MENU</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Game Over Modal -->
+      <div id="modal-gameover" class="modal-screen hidden">
+        <div id="card-gameover" class="cyber-card">
+          <h2 class="cyber-title" style="color: var(--neon-red); text-shadow: 0 0 25px var(--neon-red);">TERMINATED</h2>
+          <p id="gameover-reason" class="cyber-subtitle" style="color: var(--neon-red);">HULL INTEGRITY COMPROMISED</p>
+
+          <div class="stats-summary-grid">
+            <div class="stats-summary-item">
+              <div class="hud-label">FINAL SCORE</div>
+              <div id="gameover-score" class="hud-value" style="color: var(--neon-yellow);">0</div>
+            </div>
+            <div class="stats-summary-item">
+              <div class="hud-label">DISTANCE TRAVELED</div>
+              <div id="gameover-distance" class="hud-value">0.0 KM</div>
+            </div>
+            <div class="stats-summary-item">
+              <div class="hud-label">DATA CREDITS</div>
+              <div id="gameover-credits" class="hud-value" style="color: var(--neon-cyan);">0</div>
+            </div>
+            <div class="stats-summary-item">
+              <div class="hud-label">HIGH SCORE</div>
+              <div id="gameover-best" class="hud-value">RECORDED</div>
+            </div>
+          </div>
+
+          <div class="menu-options-grid">
+            <button id="btn-retry-gameover" class="cyber-btn" type="button">
+              <span>RELAUNCH HOVERCRAFT</span>
+            </button>
+            <button id="btn-menu-gameover" class="cyber-btn btn-pink" type="button">
+              <span>RETURN TO HANGAR</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Victory / Podiums Modal -->
+      <div id="modal-victory" class="modal-screen hidden">
+        <div id="card-victory" class="cyber-card">
+          <h2 class="cyber-title" style="color: var(--neon-green); text-shadow: 0 0 25px var(--neon-green);">CIRCUIT CONQUERED</h2>
+          <p class="cyber-subtitle" style="color: var(--neon-green);">FIRST PLACE ON THE CYBER PODIUM</p>
+
+          <div class="stats-summary-grid">
+            <div class="stats-summary-item">
+              <div class="hud-label">CHRONO TIME</div>
+              <div id="victory-time" class="hud-value" style="color: #fff;">0.00s</div>
+            </div>
+            <div class="stats-summary-item">
+              <div class="hud-label">FINAL RANK</div>
+              <div id="victory-rank" class="hud-value" style="color: var(--neon-green);">#1</div>
+            </div>
+            <div class="stats-summary-item">
+              <div class="hud-label">GRAND PRIX PTS</div>
+              <div id="victory-score" class="hud-value" style="color: var(--neon-yellow);">0</div>
+            </div>
+            <div class="stats-summary-item">
+              <div class="hud-label">CIRCUIT STATUS</div>
+              <div class="hud-value" style="color: var(--neon-cyan); font-size: 16px;">MASTER RACER</div>
+            </div>
+          </div>
+
+          <div class="menu-options-grid">
+            <button id="btn-retry-victory" class="cyber-btn" type="button">
+              <span>RACE AGAIN</span>
+            </button>
+            <button id="btn-menu-victory" class="cyber-btn btn-pink" type="button">
+              <span>MAIN MENU</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile / Touch Controls Overlay -->
+      <div id="touch-controls">
+        <div class="touch-cluster">
+          <button id="touch-left" class="touch-btn" type="button">&lt;</button>
+          <button id="touch-right" class="touch-btn" type="button">&gt;</button>
+        </div>
+        <div class="touch-cluster">
+          <button id="touch-brake" class="touch-btn" type="button">BRK</button>
+          <button id="touch-gas" class="touch-btn" type="button">GAS</button>
+          <button id="touch-boost" class="touch-btn nitro-touch" type="button">BOOST</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Plain JavaScript Game Engine -->
+    <script src="./game.js"></script>
+  </body>
+</html>
+

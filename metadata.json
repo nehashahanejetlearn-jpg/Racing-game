@@ -1,0 +1,6 @@
+{
+  "name": "Racing Game",
+  "description": "A futuristic cyberpunk 3D racing game built with plain HTML, CSS, and JavaScript featuring neon synthwave visuals, high-speed hovercraft physics, procedural synth audio, and dynamic courses.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
